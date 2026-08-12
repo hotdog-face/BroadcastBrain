@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BroadcastBrain</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📺</text></svg>">
+</head>
+<body>
+  <header>
+    <h1>BroadcastBrain</h1>
+    <form id="search-box" onsubmit="return false;">
+      <input type="search" id="q" placeholder="every Taco Bell commercial &middot; MTV clips from 2004 &middot; music videos by Green Day" autocomplete="off">
+      <button class="primary" id="search-btn">Search</button>
+    </form>
+    <div class="spacer"></div>
+    <div class="meta" id="header-meta">connecting…</div>
+  </header>
+
+  <main>
+    <section class="panel wide" id="panel-overview">
+      <h2>Overview</h2>
+      <div class="stat-grid" id="stats"></div>
+    </section>
+
+    <section class="panel" id="panel-queue">
+      <h2>Queue <span class="pill" id="queue-pill">–</span></h2>
+      <div id="queue-running"></div>
+    </section>
+
+    <section class="panel" id="panel-system">
+      <h2>System</h2>
+      <div id="system"></div>
+    </section>
+
+    <section class="panel" id="panel-categories">
+      <h2>Library by category</h2>
+      <div id="categories"></div>
+    </section>
+
+    <section class="panel wide" id="panel-results" hidden>
+      <h2>Search results <span class="muted" id="search-explain"></span></h2>
+      <div class="clip-grid" id="results"></div>
+    </section>
+
+    <section class="panel wide" id="panel-recent">
+      <h2>Recently completed</h2>
+      <div class="clip-grid" id="recent"></div>
+    </section>
+
+    <section class="panel" id="panel-duplicates">
+      <h2>Duplicates</h2>
+      <div id="duplicates"></div>
+    </section>
+
+    <section class="panel" id="panel-events">
+      <h2>Activity</h2>
+      <div class="log" id="events"></div>
+    </section>
+
+    <section class="panel wide" id="panel-capabilities">
+      <h2>Analyzers</h2>
+      <div id="capabilities"></div>
+    </section>
+  </main>
+
+  <dialog id="clip-dialog">
+    <div class="head">
+      <h3 id="dlg-title">Clip</h3>
+      <button id="dlg-reanalyze">Re-run AI</button>
+      <button id="dlg-similar">Similar</button>
+      <button id="dlg-close">Close</button>
+    </div>
+    <div class="content" id="dlg-content"></div>
+  </dialog>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

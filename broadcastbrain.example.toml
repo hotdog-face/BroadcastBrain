@@ -1,0 +1,200 @@
+# BroadcastBrain configuration
+#
+# Copy to `broadcastbrain.toml` (in the working directory, or point $BB_CONFIG
+# at it). Every value below is optional and shown at its default -- delete
+# anything you do not want to change.
+#
+# Precedence, lowest to highest:
+#   built-in defaults  ->  this file  ->  environment variables (BB_ prefix)
+#
+# Nested keys use a double underscore in the environment:
+#   [workers] cpu_workers   ->   BB_WORKERS__CPU_WORKERS=8
+#
+# `bb config` prints what actually resolved, and from where.
+
+instance_name = "broadcastbrain"
+
+# The era being recreated. Biases year estimation and flags out-of-era material
+# in the nightly report. It never causes anything to be discarded.
+era_start_year = 2002
+era_end_year   = 2006
+
+# External binaries. Bare names are looked up on PATH; absolute paths work too.
+ffmpeg_binary  = "ffmpeg"
+ffprobe_binary = "ffprobe"
+fpcalc_binary  = "fpcalc"
+
+# Move finished originals to Processing/completed rather than leaving them in
+# Incoming. They are never deleted -- re-cutting a source later is a normal
+# thing to want.
+move_completed_sources = true
+cleanup_processing     = true
+
+
+[paths]
+# Only `root` is normally set; every other directory derives from it. Override
+# individual ones to split across volumes (e.g. a fast SSD for Processing and
+# a slow array for Library).
+root = "./BroadcastBrainData"
+# incoming   = "/Volumes/Fast/Incoming"
+# processing = "/Volumes/Fast/Processing"
+# library    = "/Volumes/Archive/Library"
+# export     = "/Volumes/Archive/Fieldstation Export"
+
+
+[database]
+# Leave `url` unset for SQLite at <paths.database>/broadcastbrain.db.
+# PostgreSQL needs no other change: pip install '.[postgres]' && bb init
+# url = "postgresql+psycopg://user:pass@localhost/broadcastbrain"
+sqlite_wal             = true    # lets the dashboard read while workers write
+sqlite_busy_timeout_ms = 30000
+sqlite_synchronous     = "NORMAL"
+echo                   = false   # log every SQL statement (very noisy)
+
+
+[workers]
+cpu_workers      = 0     # 0 = auto (cores - 1)
+gpu_workers      = 1     # bounded so one card is never oversubscribed
+max_attempts     = 3
+lease_seconds    = 3600  # a long transcription renews this via heartbeat
+low_memory       = false # halves frame sampling; for small-RAM boxes
+use_gpu          = true
+hwaccel          = "auto"  # auto | none | cuda | videotoolbox | qsv | vaapi
+min_free_gb      = 25.0    # the pipeline pauses below this
+subprocess_nice  = 5       # keeps the machine usable during an overnight run
+
+
+[segmentation]
+enabled = true
+
+# --- boundary sensitivity ----------------------------------------------------
+# The single most useful knob. Lower it if long recordings are producing too
+# few clips (soft VHS transitions); raise it if clips are being shredded.
+min_boundary_score = 1.05
+min_segment_s      = 3.0
+max_segment_s      = 5400.0
+cluster_window_s   = 1.2
+
+# Bonus for boundaries landing on the 15/30/60s grid US cable actually ran on.
+# This is what recovers individual spots inside a commercial pod.
+ad_grid_bonus = 0.25
+
+# --- detector thresholds -----------------------------------------------------
+black_min_duration_s   = 0.08
+black_pixel_threshold  = 0.10
+silence_noise_db       = -38.0
+silence_min_duration_s = 0.25
+scene_threshold        = 12.0
+analysis_width         = 320   # detectors run downscaled; full res is wasteful
+analysis_fps           = 8.0
+
+# --- optional signals (all collected in the same single decode pass) ---------
+loudness_enabled = true   # ad breaks were mixed hotter in this era
+crop_enabled     = true   # 4:3 -> 16:9 transitions
+logo_enabled     = true   # the network bug dropping is a strong commercial cue
+logo_corner      = "top_right"
+
+# --- cutting -----------------------------------------------------------------
+# Stream copy is ~100x faster and lossless, but lands on keyframes. Turn this
+# on for frame-accurate cuts at a large speed cost.
+reencode        = false
+video_encoder   = "libx264"
+encoder_crf     = 20
+encoder_preset  = "veryfast"
+
+
+[analysis]
+enabled = true
+# Empty means "every registered analyzer", which is what makes a newly added
+# analyzer backfill the library automatically.
+enable_analyzers  = []
+disable_analyzers = []
+
+frames_per_clip   = 12      # shared by OCR, logo, faces, objects, scene
+thumbnail_width   = 640
+min_entity_confidence = 0.35
+per_clip_timeout_s = 1800
+keep_intermediates = false  # true keeps extracted frames/audio for debugging
+
+whisper_model        = "base.en"   # tiny.en | base.en | small.en | medium.en
+whisper_device       = "auto"      # auto | cpu | cuda
+min_transcribe_seconds = 2.0       # skip 3-second station IDs
+
+embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
+object_model    = "yolov8n.pt"
+face_model      = "buffalo_l"
+
+# Celebrity recognition needs something to compare against. Point this at a
+# directory laid out as <gallery>/<Person Name>/*.jpg. Face *detection* works
+# without it; naming a face does not.
+# faces_gallery       = "/srv/faces"
+# face_match_threshold = 0.42
+
+
+[dedupe]
+enabled = true
+phash_frames            = 32
+max_normalized_distance = 0.14  # raise to catch more near-duplicates
+duration_tolerance_s    = 2.5   # candidate blocking window
+chromaprint_min_similarity = 0.90
+move_alternates         = true  # hardlink alternates into Duplicates/
+
+
+[export]
+enabled = true
+break_interval_s          = 480.0  # how often to break inside a program
+pod_target_s              = 120.0  # target commercial pod length
+pod_min_spots             = 2
+pod_max_spots             = 4
+return_bumper_probability = 0.7    # bumper coming back from break
+random_seed               = 42     # same library in, same schedule out
+min_confidence            = 0.0    # raise to export only confident clips
+copy_media                = false  # true makes the export self-contained
+
+
+[search]
+enabled              = true
+default_limit        = 50
+rrf_k                = 60.0  # reciprocal-rank-fusion constant
+similarity_min_score = 0.55
+rebuild_index        = false
+
+
+[dashboard]
+enabled       = true
+host          = "127.0.0.1"   # localhost only; it is unauthenticated
+port          = 8842
+refresh_ms    = 2000
+allow_preview = true          # serve clips for in-browser playback
+
+
+[archive]
+# Optional Internet Archive downloader. `bb fetch --list-presets` shows
+# ready-made queries for this era.
+enabled  = false
+queries  = [
+  "MTV 2004",
+  "VH1",
+  "Discovery Channel",
+  "Adult Swim",
+  "Comedy Central",
+  "Nickelodeon",
+  "TV commercials",
+  "recorded off tv",
+  "cable recording",
+  "broadcast day",
+]
+collections         = []
+max_items_per_query = 25
+max_total_gb        = 500.0
+min_item_mb         = 20.0
+concurrency         = 2
+auto_queue          = true    # finished downloads go straight into Incoming
+# date_range = "[2002-01-01 TO 2006-12-31]"
+
+
+[logging]
+level      = "INFO"    # console
+file_level = "DEBUG"   # rotating file in Logs/
+json_logs  = false
+log_subprocess_commands = true   # verbose, but priceless when debugging ffmpeg

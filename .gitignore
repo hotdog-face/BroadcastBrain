@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# BroadcastBrain runtime data -- never commit a library or a database
+BroadcastBrainData/
+broadcastbrain.toml
+*.db
+*.db-wal
+*.db-shm
+.env
+
+# OS
+.DS_Store
