@@ -5,6 +5,8 @@ Turns a pile of archived television — Internet Archive downloads, VHS captures
 DVR recordings, DVD rips — into a segmented, analyzed, deduplicated, searchable
 library, ready to be scheduled as 2002–2006 American cable.
 
+Part of [Retro Cable TV](https://www.mitchellv.me/work/retro-tv), a CRT cable box for 2002 to 2006 TV · by [Mitchell Vizensky](https://www.mitchellv.me), game UX designer
+
 ```
 Incoming/ → discovery → segmentation → AI analysis → metadata → dedupe
           → categorization → Library/ → Fieldstation Export/
