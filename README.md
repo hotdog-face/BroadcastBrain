@@ -7,6 +7,8 @@ library, ready to be scheduled as 2002–2006 American cable.
 
 Part of [Retro Cable TV](https://www.mitchellv.me/work/retro-tv), a CRT cable box for 2002 to 2006 TV · by [Mitchell Vizensky](https://www.mitchellv.me), game UX designer
 
+If it's useful to you, you can [buy me a coffee on Ko-fi](https://ko-fi.com/Y4G62AHO0A). It helps keep these projects going.
+
 ```
 Incoming/ → discovery → segmentation → AI analysis → metadata → dedupe
           → categorization → Library/ → Fieldstation Export/
